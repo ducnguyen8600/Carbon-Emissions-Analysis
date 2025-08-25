@@ -1,6 +1,6 @@
 # Carbon-Emissions-Analysis
 
-## 1. Introduction
+## I. Introduction
 
 This report aims to analyze carbon emissions to examine the carbon footprint across various industries. We aim to identify sectors with the highest levels of emissions by analyzing them across countries and years, as well as to uncover trends.
 
@@ -8,14 +8,13 @@ Carbon emissions play a crucial role in the environment, accounting for over 75%
 
 Through this analysis, we hope to gain an understanding of the environmental impact of different industries and contribute to making informed decisions in sustainable development.
 
-## 2. Data Overview
+## II. Data Overview
 ###  Data Source
 Data Source: Where Our Data Comes From
 Our dataset is compiled from publicly available data from nature.com and encompasses the product carbon footprints (PCF) for various companies. PCFs represent the greenhouse gas emissions associated with specific products, quantified in CO2 (carbon dioxide equivalent)
 ### Data Structure
 The dataset consists of 4 tables containing information regarding carbon emissions generated during the production of goods.
 
-https://lms.swisscoding.edu.vn/pluginfile.php/26376/mod_label/intro/Database%20diagram.png<img width="687" height="487" alt="image" src="https://github.com/user-attachments/assets/7c9e769a-4183-4a08-95dc-a148be701f61" />
 
 ### Table Preview
 
@@ -75,7 +74,7 @@ LIMIT 5
 |4|Canada|
 |5|Chile|
 
-## 3. Pre-processing
+## III. Pre-processing
 ### Check Duplicate
 #### Check total row
 ```sql
@@ -293,7 +292,147 @@ LIMT 10
 |10661-1-2014|85|28|11|2014|501® Original Jeans – Dark Stonewash|0.997|16|N/a (product with insufficient stage-level data)|N/a (product with insufficient stage-level data)|N/a (product with insufficient stage-level data)|1|
 |10661-1-2015|85|28|6|2015|501® Original Jeans – Dark Stonewash|0.997|16|N/a (product with insufficient stage-level data)|N/a (product with insufficient stage-level data)|N/a (product with insufficient stage-level data)|1|
 
-## 4. Analyze
+## IV. Analyze
+### 1. Which products contribute the most to carbon emissions?
+### 2. What are the industry groups of these products?
+```sql
+WITH pe_no_duplicate as 
+(SELECT *
+FROM 
+	(SELECT
+		*,
+		ROW_NUMBER() OVER(PARTITION BY id) as rn
+	FROM product_emissions) t
+WHERE rn = 1)
+
+SELECT 
+	pe.product_name, ig.industry_group,
+	ROUND(AVG(pe.carbon_footprint_pcf),2) as avg_carbon
+FROM pe_no_duplicate as pe
+LEFT JOIN industry_groups as ig 
+ON pe.industry_group_id = ig.id 
+GROUP BY pe.product_name, ig.industry_group
+ORDER BY avg_carbon DESC 
+LIMIT 10
+```
+|product_name|industry_group|avg_carbon|
+|------------|--------------|----------|
+|Wind Turbine G128 5 Megawats|Electrical Equipment and Machinery|3718044.00|
+|Wind Turbine G132 5 Megawats|Electrical Equipment and Machinery|3276187.00|
+|Wind Turbine G114 2 Megawats|Electrical Equipment and Machinery|1532608.00|
+|Wind Turbine G90 2 Megawats|Electrical Equipment and Machinery|1251625.00|
+|Land Cruiser Prado. FJ Cruiser. Dyna trucks. Toyoace.IMV def unit.|Automobiles & Components|191687.00|
+|Retaining wall structure with a main wall (sheet pile): 136 tonnes of steel sheet piles and 4 tonnes of tierods per 100 meter wall|Materials|167000.00|
+|TCDE|Materials|99075.00|
+|Mercedes-Benz GLE (GLE 500 4MATIC)|Automobiles & Components|91000.00|
+|Mercedes-Benz S-Class (S 500)|Automobiles & Components|85000.00|
+|Mercedes-Benz SL (SL 350)|Automobiles & Components|72000.00|
+
+### 3. What are the industries with the highest contribution to carbon emissions?
+```sql
+WITH pe_no_duplicate as 
+(SELECT *
+FROM 
+	(SELECT
+		*,
+		ROW_NUMBER() OVER(PARTITION BY id) as rn
+	FROM product_emissions) t
+WHERE rn = 1)
+
+SELECT 
+	ig.industry_group,
+	ROUND(SUM(pe.carbon_footprint_pcf),2) as sum_carbon
+FROM pe_no_duplicate as pe
+LEFT JOIN industry_groups ig 
+ON pe.industry_group_id = ig.id 
+GROUP BY ig.industry_group
+ORDER BY sum_carbon DESC 
+LIMIT 10
+```
+|industry_group|sum_carbon|
+|--------------|----------|
+|Electrical Equipment and Machinery|9801558.00|
+|Automobiles & Components|2582264.00|
+|Materials|430199.00|
+|Technology Hardware & Equipment|278650.00|
+|Capital Goods|258633.00|
+|"Food, Beverage & Tobacco"|109132.00|
+|"Pharmaceuticals, Biotechnology & Life Sciences"|72486.00|
+|Software & Services|46533.00|
+|Chemicals|44939.00|
+|Media|23017.00|
+
+### 4. What are the companies with the highest contribution to carbon emissions?
+```sql
+WITH pe_no_duplicate as 
+(SELECT *
+FROM 
+	(SELECT
+		*,
+		ROW_NUMBER() OVER(PARTITION BY id) as rn
+	FROM product_emissions) t
+WHERE rn = 1)
+
+SELECT 
+	c.company_name,
+	ROUND(SUM(pe.carbon_footprint_pcf),2) as sum_carbon
+FROM pe_no_duplicate as pe
+LEFT JOIN companies c 
+ON pe.company_id = c.id 
+GROUP BY c.company_name
+ORDER BY sum_carbon DESC 
+LIMIT 10
+```
+|company_name|sum_carbon|
+|------------|----------|
+|"Gamesa Corporación Tecnológica, S.A."|9778464.00|
+|Daimler AG|1594300.00|
+|Volkswagen AG|655960.00|
+|"Hino Motors, Ltd."|191687.00|
+|Arcelor Mittal|167007.00|
+|Weg S/A|160655.00|
+|General Motors Company|137007.00|
+|"Mitsubishi Gas Chemical Company, Inc."|106008.00|
+|"Daikin Industries, Ltd."|105600.00|
+|CJ Cheiljedang|94817.00|
+
+### 5. What are the countries with the highest contribution to carbon emissions?
+```sql
+WITH pe_no_duplicate as 
+(SELECT *
+FROM 
+	(SELECT
+		*,
+		ROW_NUMBER() OVER(PARTITION BY id) as rn
+	FROM product_emissions) t
+WHERE rn = 1)
+
+SELECT 
+	c.country_name,
+	ROUND(SUM(pe.carbon_footprint_pcf),2) as sum_carbon
+FROM pe_no_duplicate as pe
+LEFT JOIN countries c 
+ON pe.country_id = c.id 
+GROUP BY c.country_name
+ORDER BY sum_carbon DESC 
+LIMIT 10
+```
+|country_name|sum_carbon|
+|------------|----------|
+|Spain|9786127.00|
+|Germany|2251225.00|
+|Japan|519348.00|
+|USA|451867.00|
+|Brazil|167587.00|
+|Luxembourg|167007.00|
+|South Korea|140995.00|
+|Netherlands|70417.00|
+|Taiwan|61511.00|
+|India|24574.00|
+
+
+
+
 
 
 
