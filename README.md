@@ -204,7 +204,7 @@ LIMIT 10
 |Chemicals|44939.00|
 |Media|23017.00|
 
-Insights: 'Electrical Equipment and Machinery' industry and 'Automobiles & Components' contributes outstandingly most PCFs among all products
+Insights: 'Electrical Equipment and Machinery' and 'Automobiles & Components' industry contributes outstandingly most PCFs among all products
 
 ### 4. What are the companies with the highest contribution to carbon emissions?
 ```sql
@@ -240,7 +240,7 @@ LIMIT 10
 |"Daikin Industries, Ltd."|105600.00|
 |CJ Cheiljedang|94817.00|
 
-
+Insights: The top three companies contributing the most to PCFs are 'Gamesa Corporación Tecnológica, S.A.', 'Daimler AG', and 'Volkswagen AG' respectively.
 
 ### 5. What are the countries with the highest contribution to carbon emissions?
 ```sql
@@ -276,6 +276,7 @@ LIMIT 10
 |Taiwan|61511.00|
 |India|24574.00|
 
+Insights: The top four countries contributing the most to PCFs are Spain, Germany, Japan and USA respectively
 ### 6. What is the trend of carbon footprints (PCFs) over the years?
 ```sql
 WITH pe_no_duplicate as 
@@ -388,6 +389,14 @@ ORDER BY pcfs_change ASC
 |Technology Hardware & Equipment|2015|-7|
 |Materials|2016|-7|
 |Media|2016|-6|
+
+Insights:
+The most notable decreases in PCFs by industry occurred in the following periods:
+- Food, Beverage & Tobacco: 2014-2015, 2016-2017
+- Food & Staples Retailing: 2015-2016
+- Technology Hardware & Equipment: 2015-2016
+- Software & Services: 2016-2017
+
 
 
 
