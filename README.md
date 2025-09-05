@@ -283,19 +283,57 @@ WHERE rn = 1)
 
 SELECT
 	year ,
-	ROUND(SUM(pe.carbon_footprint_pcf),2) as sum_carbon,
-	ROUND(AVG(pe.carbon_footprint_pcf),2) as avg_carbon
+	ROUND(SUM(pe.carbon_footprint_pcf),2) as sum_carbon
 FROM pe_no_duplicate pe
 GROUP BY `year`
 ORDER BY year ASC
 ```
-|year|sum_carbon|avg_carbon|
-|----|----------|----------|
-|2013|496076.00|2771.37|
-|2014|548229.00|2885.42|
-|2015|10810407.00|49817.54|
-|2016|1612760.00|7397.98|
-|2017|228531.00|3685.98|
+|year|sum_carbon|
+|----|----------|
+|2013|496076.00|
+|2014|548229.00|
+|2015|10810407.00|
+|2016|1612760.00|
+|2017|228531.00|
+
+https://github.com/ducnguyen8600/Carbon-Emissions-Analysis/blob/main/Total%20PCFs%20by%20Year.png?raw=true<img width="600" height="371" alt="image" src="https://github.com/user-attachments/assets/d15b6f0d-7291-456f-b7c7-cac626139a6c" />
+
+#### PCFs reached their peak in 2015, marking a significant point in the dataset. To provide further clarity, this section examines the top 10 products by PCF over the year, highlighting the key contributors to the overall impact.
+```sql
+WITH pe_no_duplicate as 
+(SELECT *
+FROM 
+	(SELECT
+		*,
+		ROW_NUMBER() OVER(PARTITION BY id) as rn
+	FROM product_emissions) t
+WHERE rn = 1)
+
+SELECT
+	year , product_name, carbon_footprint_pcf
+FROM pe_no_duplicate pe
+ORDER BY carbon_footprint_pcf DESC
+LIMIT 10
+```
+|year|product_name|carbon_footprint_pcf|
+|----|------------|--------------------|
+|2015|Wind Turbine G128 5 Megawats|3718044|
+|2015|Wind Turbine G132 5 Megawats|3276187|
+|2015|Wind Turbine G114 2 Megawats|1532608|
+|2015|Wind Turbine G90 2 Megawats|1251625|
+|2016|Land Cruiser Prado. FJ Cruiser. Dyna trucks. Toyoace.IMV def unit.|191687|
+|2013|Retaining wall structure with a main wall (sheet pile): 136 tonnes of steel sheet piles and 4 tonnes of tierods per 100 meter wall|167000|
+|2017|TCDE|99075|
+|2016|Mercedes-Benz GLE (GLE 500 4MATIC)|91000|
+|2014|Electric Motor|87589|
+|2016|Mercedes-Benz S-Class (S 500)|85000|
+
+Insights:
+The Wind Turbine products account for approximately 90% of the total PCF, making it the dominant contributor among the top 10 products
+
+
+
+
 
 
 
