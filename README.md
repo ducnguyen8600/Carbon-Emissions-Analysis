@@ -168,6 +168,8 @@ LIMIT 10
 |Mercedes-Benz S-Class (S 500)|Automobiles & Components|85000.00|
 |Mercedes-Benz SL (SL 350)|Automobiles & Components|72000.00|
 
+Insights: Wind Turbine products in 'Electrical Equipment and Machinery' industry and cars in 'Automobiles & Components' contributes most PCFs among all products
+
 ### 3. What are the industries with the highest contribution to carbon emissions?
 ```sql
 WITH pe_no_duplicate as 
@@ -202,6 +204,8 @@ LIMIT 10
 |Chemicals|44939.00|
 |Media|23017.00|
 
+Insights: 'Electrical Equipment and Machinery' industry and 'Automobiles & Components' contributes outstandingly most PCFs among all products
+
 ### 4. What are the companies with the highest contribution to carbon emissions?
 ```sql
 WITH pe_no_duplicate as 
@@ -235,6 +239,8 @@ LIMIT 10
 |"Mitsubishi Gas Chemical Company, Inc."|106008.00|
 |"Daikin Industries, Ltd."|105600.00|
 |CJ Cheiljedang|94817.00|
+
+
 
 ### 5. What are the countries with the highest contribution to carbon emissions?
 ```sql
@@ -298,7 +304,7 @@ ORDER BY year ASC
 
 https://github.com/ducnguyen8600/Carbon-Emissions-Analysis/blob/main/Total%20PCFs%20by%20Year.png?raw=true<img width="600" height="371" alt="image" src="https://github.com/user-attachments/assets/d15b6f0d-7291-456f-b7c7-cac626139a6c" />
 
-#### PCFs reached their peak in 2015, marking a significant point in the dataset. To provide further clarity, this section examines the top 10 products by PCF over the year, highlighting the key contributors to the overall impact.
+#### PCFs reached their peak in 2015, marking a significant point in the dataset. Addition to Question 1, this section examines the top 10 products by PCF over the year, highlighting the key contributors to the overall impact.
 ```sql
 WITH pe_no_duplicate as 
 (SELECT *
@@ -328,8 +334,61 @@ LIMIT 10
 |2014|Electric Motor|87589|
 |2016|Mercedes-Benz S-Class (S 500)|85000|
 
-Insights:
-The Wind Turbine products account for approximately 90% of the total PCF, making it the dominant contributor among the top 10 products
+Insights: Wind turbine products accounted for approximately 90% of the total PCF in 2015 and across all years, making them the dominant contributors among the top 10 products.
+
+### 7. Which industry groups has demonstrated the most notable decrease in carbon footprints (PCFs) over time?
+CTE pcfs_by_industry include: sum_carbon and sum_carbon_previous_year by industry and year. 
+
+A pcfs_change column shows the percentage change between sum_carbon of current year and previous year.
+
+```sql
+WITH pe_no_duplicate as 
+(SELECT *
+FROM 
+	(SELECT
+		*,
+		ROW_NUMBER() OVER(PARTITION BY id) as rn
+	FROM product_emissions) t
+WHERE rn = 1),
+
+pcfs_by_industry as 
+(SELECT 
+	ig.industry_group, pe.year,
+	SUM(pe.carbon_footprint_pcf) as sum_carbon,
+	LAG(SUM(pe.carbon_footprint_pcf)) OVER(PARTITION BY ig.industry_group ORDER BY year ASC) as sum_carbon_previous_year
+FROM pe_no_duplicate as pe
+LEFT JOIN industry_groups ig 
+ON pe.industry_group_id = ig.id 
+GROUP BY ig.industry_group, `year`)
+
+SELECT 
+	industry_group, year,
+	ROUND(((sum_carbon - sum_carbon_previous_year) / sum_carbon_previous_year * 100)) as pcfs_change
+FROM pcfs_by_industry
+WHERE sum_carbon_previous_year IS NOT NULL
+HAVING pcfs_change < 0
+ORDER BY pcfs_change ASC
+```
+|industry_group|year|pcfs_change|
+|--------------|----|-----------|
+|"Food, Beverage & Tobacco"|2015|-100|
+|Food & Staples Retailing|2016|-100|
+|Technology Hardware & Equipment|2016|-99|
+|Software & Services|2017|-97|
+|"Food, Beverage & Tobacco"|2017|-97|
+|Capital Goods|2015|-96|
+|Semiconductors & Semiconductor Equipment|2016|-96|
+|Media|2015|-80|
+|Commercial & Professional Services|2017|-74|
+|Materials|2014|-66|
+|Consumer Durables & Apparel|2016|-64|
+|"Food, Beverage & Tobacco"|2014|-53|
+|Commercial & Professional Services|2014|-42|
+|Food & Staples Retailing|2015|-9|
+|Technology Hardware & Equipment|2015|-7|
+|Materials|2016|-7|
+|Media|2016|-6|
+
 
 
 
